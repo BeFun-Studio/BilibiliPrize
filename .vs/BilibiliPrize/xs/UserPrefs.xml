@@ -1,0 +1,28 @@
+﻿<Properties StartupConfiguration="{C76EE67D-A092-4D61-B9CA-5F41ED555340}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="BilibiliPrize/Program.cs">
+    <Files>
+      <File FileName="BilibiliPrize/Program.cs" Line="11" Column="21" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="BilibiliPrize" expanded="True">
+            <Node name="BilibiliPrize" expanded="True">
+              <Node name="References" expanded="True" selected="True" />
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+      <Pad Id="MonoDevelop.Debugger.WatchPad">
+        <State />
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.BilibiliPrize PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>

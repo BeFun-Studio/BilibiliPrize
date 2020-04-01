@@ -1,0 +1,9 @@
+/home/isoheptane/Development/CSharp/BilibiliPrize/BilibiliPrize/bin/Debug/BilibiliPrize.exe
+/home/isoheptane/Development/CSharp/BilibiliPrize/BilibiliPrize/bin/Debug/BilibiliPrize.pdb
+/home/isoheptane/Development/CSharp/BilibiliPrize/BilibiliPrize/obj/x86/Debug/BilibiliPrize.csprojAssemblyReference.cache
+/home/isoheptane/Development/CSharp/BilibiliPrize/BilibiliPrize/obj/x86/Debug/BilibiliPrize.exe
+/home/isoheptane/Development/CSharp/BilibiliPrize/BilibiliPrize/obj/x86/Debug/BilibiliPrize.pdb
+/home/isoheptane/Development/CSharp/BilibiliPrize/BilibiliPrize/bin/Debug/Newtonsoft.Json.dll
+/home/isoheptane/Development/CSharp/BilibiliPrize/BilibiliPrize/bin/Debug/Newtonsoft.Json.pdb
+/home/isoheptane/Development/CSharp/BilibiliPrize/BilibiliPrize/obj/x86/Debug/BilibiliPrize.csproj.CopyComplete
+/home/isoheptane/Development/CSharp/BilibiliPrize/BilibiliPrize/bin/Debug/Newtonsoft.Json.xml
