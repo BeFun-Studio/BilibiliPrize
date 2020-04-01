@@ -8,13 +8,11 @@
         <State name="__root__">
           <Node name="BilibiliPrize" expanded="True">
             <Node name="BilibiliPrize" expanded="True">
-              <Node name="References" expanded="True" selected="True" />
+              <Node name="References" expanded="True" />
+              <Node name="Program.cs" selected="True" />
             </Node>
           </Node>
         </State>
-      </Pad>
-      <Pad Id="MonoDevelop.Debugger.WatchPad">
-        <State />
       </Pad>
     </Pads>
   </MonoDevelop.Ide.Workbench>

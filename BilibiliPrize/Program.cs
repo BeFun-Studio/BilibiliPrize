@@ -157,7 +157,7 @@ namespace BilibiliPrize
                 page++;
             }
             page--;
-            Console.Write("\n{0} users replied, press Enter to display.", users.Count);
+            Console.Write("\n{0} users replied and followed, press Enter to display.", users.Count);
             Console.ReadLine();
             // Display all users and comments
             foreach(User user in users)
@@ -186,6 +186,17 @@ namespace BilibiliPrize
                     break;
                 }
             }
+            // This is the solution available
+            Random random = new Random();
+            Console.WriteLine("Press Enter to randomly select one user.");
+            while(true)
+            {
+                Console.ReadLine();
+                Console.WriteLine("  " + users[random.Next(0, users.Count)].ToString());
+            }
+            /*
+             * This part is currently abandoned because of I can't locate only fans by using only public API.
+             *             
             Console.Write("\n{0} user is in the list.How many users would you like to give prize : ",users.Count);
             int prizeCount = int.Parse(Console.ReadLine());
             // Randomly select users.
@@ -209,6 +220,8 @@ namespace BilibiliPrize
                 Console.WriteLine("  " + user.ToString());
             }
             Console.WriteLine("Congratulations!");
+            *
+            */
         }
 
         // It is really painful feelings.
