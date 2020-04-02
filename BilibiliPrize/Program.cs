@@ -16,8 +16,18 @@ namespace BilibiliPrize
 {
     public static class BilibiliAPI
     {
+        public static string memberInformation1 = "https://api.bilibili.com/x/space/upstat?mid={0}";
+        public static string memberInformation2 = "https://api.bilibili.com/x/relation/stat?vmid={0}";
+        public static string memberInformation3 = "https://api.bilibili.com/x/space/acc/info?mid={0}";
+        // There are three different APIs for different usages
+        // API1 : Article / Video views and Likes
+        // API2 : Following Status
+        // API3 : Personal Information
         public static string videoInformation = "https://api.bilibili.com/x/web-interface/view?aid={0}";
+        public static string videoInformationBV = "https://api.bilibili.com/x/web-interface/view?bvid={0}";
         public static string videoComments = "https://api.bilibili.com/x/v2/reply?jsonp=jsonp&;pn={1}&type=1&oid={0}";
+        public static string videoCommentsBV = "https://api.bilibili.com/x/v2/reply?jsonp=jsonp&;pn={1}&type=1&oid={0}";
+        public static string relations = "https://api.bilibili.com/x/space/acc/relation?mid={0}";
     }
     public class User
     {
@@ -25,6 +35,8 @@ namespace BilibiliPrize
         public string name;
         public int level;
         public List<String> comments;
+        public bool followed = false; // It means you followed
+        public bool follower = false; // It means he is your follower;
         public User(int uid,string name,int level, string comment)
         {
             this.uid = uid;
@@ -39,7 +51,12 @@ namespace BilibiliPrize
         }
         public override string ToString() // Serialize Comments
         {
-            string ret = string.Format("{0} [UID:{1},Level:{2}]", name, uid, level);
+            string ret = string.Format("{0} [UID:{1},Level:{2}", name, uid, level);
+            if (follower)
+                ret += ",Follower";
+            if (followed)
+                ret += ",Followed";
+            ret += "]";
             for(int i = 0;i<comments.Count;i++)
             {
                 ret += string.Format("\n{0}:", (i + 1).ToString().PadLeft(4));
@@ -72,21 +89,92 @@ namespace BilibiliPrize
             responseStream.Close();
             return responseString;
         }
+        public static string HttpGet(string url,string cookie)
+        {
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
+            request.Method = "GET";
+            request.ContentType = "text/plain;charset=UTF-8";
+            request.CookieContainer = new CookieContainer();
+            request.CookieContainer.Add(new Cookie("SESSDATA",cookie,"/","bilibili.com"));
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream responseStream = response.GetResponseStream();
+            StreamReader reader = new StreamReader(responseStream, Encoding.GetEncoding("utf-8"));
+            string responseString = reader.ReadToEnd();
+            reader.Close();
+            responseStream.Close();
+            return responseString;
+        }
 
         public static void Main(string[] args)
         {
             Console.WriteLine("Bilibili Draw v0.1.0 by Isoheptane\n");
 
-            string aid;
+            string vid;
+            string uid;
             VideoInfo videoInfo;
-
+            MemberInfo1 memberInfo1;
+            MemberInfo2 memberInfo2;
+            MemberInfo3 memberInfo3;
+            while (true)
+            {
+                Console.Write("Bilibili Member UID: ");
+                uid = Console.ReadLine();
+                // Get video information
+                // MemberAPI 1
+                string memberInfo1Json = HttpGet(string.Format(BilibiliAPI.memberInformation1, uid));
+                memberInfo1 = JsonConvert.DeserializeObject<MemberInfo1>(memberInfo1Json);
+                // MemberAPI 2
+                string memberInfo2Json = HttpGet(string.Format(BilibiliAPI.memberInformation2, uid));
+                memberInfo2 = JsonConvert.DeserializeObject<MemberInfo2>(memberInfo2Json);
+                // MemberAPI 3
+                string memberInfo3Json = HttpGet(string.Format(BilibiliAPI.memberInformation3, uid));
+                memberInfo3 = JsonConvert.DeserializeObject<MemberInfo3>(memberInfo3Json);
+                if (memberInfo1.code != 0)
+                    Console.WriteLine("Member information is invalid , code {0} : {1}", memberInfo1.code, memberInfo1.message); // Check member info available
+                else
+                    break;
+                if (memberInfo2.code != 0)
+                    Console.WriteLine("Member information is invalid , code {0} : {1}", memberInfo2.code, memberInfo2.message); // Check member info available
+                else
+                    break;
+                if (memberInfo3.code != 0)
+                    Console.WriteLine("Member information is invalid , code {0} : {1}", memberInfo3.code, memberInfo3.message); // Check member info available
+                else
+                    break;
+            }
+            // Display User Information
+            Console.WriteLine("\nMember Information:");
+            Console.WriteLine("  Name: {0}", memberInfo3.data.name);
+            Console.WriteLine("  Gender: {0}", memberInfo3.data.sex);
+            Console.WriteLine("  Level: {0}", memberInfo3.data.level);
+            Console.WriteLine("  Introduction: {0}", memberInfo3.data.sign);
+            Console.WriteLine("  Video Views: {0}  Article Views: {1}  Likes: {2}", memberInfo1.data.archive.view.ToString().PadLeft(9)
+                                                                                  , memberInfo1.data.article.view.ToString().PadLeft(9)
+                                                                                  , memberInfo1.data.likes);
+            Console.WriteLine("  Followed:    {0}  Followers:     {1}",memberInfo2.data.following.ToString().PadLeft(9)
+                                                                      ,memberInfo2.data.follower.ToString().PadLeft(9));
+            // Collect Cookies
+            string SESSDATA;
+            if(File.Exists("SESSDATA"))
+                SESSDATA = File.ReadAllText("SESSDATA");
+            else
+            {
+                Console.WriteLine("\nYou can delete \"cookie\" file in the program directory to restore SESSDATA.");
+                Console.Write("Bilibili SESSDATA: ");
+                SESSDATA = Console.ReadLine();
+                File.WriteAllText("SESSDATA", SESSDATA);
+            }
             // Check Video Information
             while (true)
             {
-                Console.Write("Bilibili video AID: ");
-                aid = Console.ReadLine();
+                Console.Write("\nBilibili video ID: ");
+                vid = Console.ReadLine();
                 // Get video information
-                string videoInfoJson = HttpGet(string.Format(BilibiliAPI.videoInformation, aid));
+                string videoInfoJson;
+                if(vid.Substring(0,2)=="BV") // Check is BVID or not
+                    videoInfoJson = HttpGet(string.Format(BilibiliAPI.videoInformationBV, vid));
+                else
+                    videoInfoJson = HttpGet(string.Format(BilibiliAPI.videoInformation, vid));
                 videoInfo = JsonConvert.DeserializeObject<VideoInfo>(videoInfoJson);
                 if (videoInfo.code != 0)
                     Console.WriteLine("Video information is invalid , code {0} : {1}", videoInfo.code, videoInfo.message); // Check video available
@@ -119,7 +207,7 @@ namespace BilibiliPrize
             int page = 1;
             while(true)
             {
-                string commentsJson = HttpGet(string.Format(BilibiliAPI.videoComments, aid, page));
+                string commentsJson = HttpGet(string.Format(BilibiliAPI.videoComments, videoInfo.data.aid, page));
                 CommentsInfo commentsInfo = JsonConvert.DeserializeObject<CommentsInfo>(commentsJson);
                 CommentsData data = commentsInfo.data;
                 if (data.replies == null)
@@ -169,40 +257,53 @@ namespace BilibiliPrize
             {
                 Console.Write("Would you like to except yourself from prize list? <y/n> ");
                 string input = Console.ReadLine();
-                if(input=="y")
+                if (input == "y")
                 {
-                    Console.Write("Your UID: ");
-                    int uid = int.Parse(Console.ReadLine());
-                    foreach(User user in users)
-                        if(user.uid==uid)
+                    foreach (User user in users)
+                        if (user.uid == int.Parse(uid))
                         {
                             users.Remove(user);
                             break;
                         }
                     break;
                 }
-                else if(input=="n")
+                else if (input == "n")
                 {
                     break;
                 }
             }
-            // This is the solution available
+            /* This is the solution available without cookies
             Random random = new Random();
-            Console.WriteLine("Press Enter to randomly select one user.");
+            Console.WriteLine("\n{0}user is in the list. Press Enter to randomly select one user.",users.Count);
             while(true)
             {
                 Console.ReadLine();
                 Console.WriteLine("  " + users[random.Next(0, users.Count)].ToString());
-            }
-            /*
-             * This part is currently abandoned because of I can't locate only fans by using only public API.
-             *             
-            Console.Write("\n{0} user is in the list.How many users would you like to give prize : ",users.Count);
+            } */
+            Console.Write("\n{0} user is in the list.How many users would you like to give prize : ", users.Count);
+            bool fansOnly;
             int prizeCount = int.Parse(Console.ReadLine());
+            // Check is fans only
+            while (true)
+            {
+                Console.Write("Followers only? <y/n> ");
+                string input = Console.ReadLine();
+                if (input == "y")
+                {
+                    fansOnly = true;
+                    break;
+                }
+                else if (input == "n")
+                {
+                    fansOnly = false;
+                    break;
+                }
+            }
             // Randomly select users.
             Random random = new Random();
             List<User> winners = new List<User>();
             int winnerCount = 0;
+            Console.WriteLine();
             while(winnerCount!=prizeCount)
             {
                 int target = random.Next(0,users.Count); // Random won't generate a number equals to its maxValue
@@ -210,18 +311,44 @@ namespace BilibiliPrize
                     continue;
                 else
                 {
+                    Relation relation;
+                    for (int i = 1; i < 3; i++) // Limit the max attempt count
+                    {
+                        string relationJson = HttpGet(String.Format(BilibiliAPI.relations, users[target].uid), SESSDATA);
+                        relation = JsonConvert.DeserializeObject<Relation>(relationJson);
+                        if(relation.code!=0)
+                        {
+                            Console.WriteLine("  Attempt to get relation about UID{0} information failed, code {1} : {2}", users[target].uid, relation.code, relation.message);
+                            continue;
+                        }
+                        else
+                        {
+                            if (relation.data.be_relation.mid == int.Parse(uid)) // Check is fans or not
+                                users[target].follower = true;
+                            if (relation.data.relation.mid == users[target].uid)
+                                users[target].followed = true;
+                            break;
+                        }
+                    }
+                    if (fansOnly)
+                    {
+                        if (users[target].follower)
+                        {
+                            winners.Add(users[target]);
+                            winnerCount++;
+                        }
+                        continue;
+                    }
                     winners.Add(users[target]);
                     winnerCount++;
                 }
             }
-            Console.WriteLine("\nComplete. Winners are:");
+            Console.WriteLine("Complete. Winners are:");
             foreach(User user in winners)
             {
                 Console.WriteLine("  " + user.ToString());
             }
             Console.WriteLine("Congratulations!");
-            *
-            */
         }
 
         // It is really painful feelings.
@@ -286,6 +413,64 @@ namespace BilibiliPrize
         {
             public string message { get; set; }
         }
-
+        public class MemberInfo1
+        {
+            public int code { get; set; }
+            public string message { get; set; }
+            public MemberInfo1Data data { get; set; }
+        }
+        public class MemberInfo1Data
+        {
+            public MemberInfo1DataVideo archive { get; set; }
+            public MemberInfo1DataArticle article { get; set; }
+            public int likes { get; set; }
+        }
+        public class MemberInfo1DataVideo
+        {
+            public int view { get; set; }
+        }
+        public class MemberInfo1DataArticle
+        {
+            public int view { get; set; }
+        }
+        public class MemberInfo2
+        {
+            public int code { get; set; }
+            public string message { get; set; }
+            public MemberInfo2Data data { get; set; }
+        }
+        public class MemberInfo2Data
+        {
+            public int following { get; set; }
+            public int follower { get; set; }
+        }
+        public class MemberInfo3
+        {
+            public int code { get; set; }
+            public string message { get; set; }
+            public MemberInfo3Data data { get; set; }
+        }
+        public class MemberInfo3Data
+        {
+            public string name { get; set; }
+            public string sex { get; set; }
+            public string sign { get; set; }
+            public int level { get; set; }
+        }
+        public class Relation
+        {
+            public int code { get; set; }
+            public string message { get; set; }
+            public RelationData data { get; set; }
+        }
+        public class RelationData
+        {
+            public RelationDataRelation relation { get; set; }
+            public RelationDataRelation be_relation { get; set; }
+        }
+        public class RelationDataRelation
+        {
+            public int mid { get; set; }
+        }
     }
 }
